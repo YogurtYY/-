@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#f5f7fb">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="五十音随身学">
+<title>五十音随身学</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#172033;--muted:#697386;--accent:#4568f5;--soft:#eaf0ff;--line:#e4e8f0;--good:#16845b;--bad:#c43d4d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif}
+header{padding:22px 18px 16px;background:linear-gradient(135deg,#eaf0ff,#f9faff)}header h1{font-size:25px;margin:0 0 7px}header p{margin:0;color:var(--muted);font-size:13px}
+nav{display:flex;gap:8px;padding:12px;position:sticky;top:0;background:rgba(245,247,251,.96);backdrop-filter:blur(8px);z-index:5;border-bottom:1px solid var(--line)}
+nav button{flex:1;border:0;border-radius:12px;padding:12px 5px;background:#e8ebf3;color:#475166;font-size:14px;font-weight:700}nav button.active{background:var(--accent);color:white}
+main{padding:14px;max-width:720px;margin:auto}.panel{display:none}.panel.active{display:block}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:13px;box-shadow:0 4px 16px rgba(30,45,80,.035)}
+h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button,.btn{cursor:pointer}button.primary{background:var(--accent);color:white;border:0;border-radius:12px;padding:12px 15px;font-weight:700}button.secondary{background:var(--soft);color:var(--accent);border:0;border-radius:12px;padding:12px 15px;font-weight:700}button.light{background:#f0f2f7;border:0;border-radius:10px;padding:9px 12px;color:#39445a}
+select{border:1px solid var(--line);border-radius:10px;padding:10px;background:white;color:var(--ink);font-size:14px}
+.kana-card{text-align:center;padding:22px 12px}.kana-big{font-size:clamp(84px,24vw,126px);line-height:1.15;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}.romaji{font-size:23px;color:var(--accent);font-weight:700;margin:5px}.kana-name{font-size:14px;color:var(--muted)}
+.progress{height:7px;border-radius:99px;background:#edf0f6;overflow:hidden;margin:12px 0}.progress span{display:block;height:100%;background:var(--accent);width:0}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.tile{border:1px solid var(--line);border-radius:11px;background:white;min-height:64px;padding:5px 2px;text-align:center;color:var(--ink)}.tile .jp{font-size:27px;display:block}.tile .ro{font-size:11px;color:var(--muted)}.tile.done{background:#e9f8f1;border-color:#b7e6d0}.tile.selected{outline:2px solid var(--accent)}
+.smalltitle{font-size:13px;color:var(--muted);margin:15px 0 8px}
+canvas{display:block;width:100%;height:270px;border:1.5px dashed #b9c3d6;border-radius:14px;background-color:white;touch-action:none}
+#quizKana{font-size:90px;text-align:center;line-height:1.25;margin:8px 0}#choices{display:grid;grid-template-columns:1fr 1fr;gap:9px}#choices button{padding:15px 8px;font-size:17px;border:1px solid var(--line);background:#fff;border-radius:12px;color:var(--ink)}#choices button.correct{background:#e3f8ed;border-color:#72c99d}#choices button.wrong{background:#fff0f1;border-color:#e99aa3}
+.notice{padding:10px 12px;background:#f5f7fb;border-radius:10px;font-size:13px;color:var(--muted);line-height:1.6}.hidden{display:none!important}
+footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
+@media(min-width:600px){main{padding:20px}.grid{gap:9px}.tile{min-height:74px}}
+</style>
+</head>
+<body>
+<header><h1>五十音随身学</h1><p>零基础日语入门 · 离线可用 · 学习进度保存在本机浏览器</p></header>
+<nav>
+<button class="active" data-tab="learn">逐个学习</button><button data-tab="write">手写练习</button><button data-tab="quiz">随机测试</button>
+</nav>
+<main>
+<section class="panel active" id="learn">
+<div class="card">
+<div class="row" style="justify-content:space-between"><h2>学习假名</h2><select id="scriptSelect"><option value="hira">平假名</option><option value="kata">片假名</option></select></div>
+<div class="row" style="justify-content:space-between"><span class="muted" id="learnCount">第 1 个</span><span class="muted" id="learnProgress">已掌握 0 个</span></div><div class="progress"><span id="learnBar"></span></div>
+<div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div></div>
+<div class="row" style="justify-content:center"><button class="secondary" id="prevBtn">← 上一个</button><button class="primary" id="knownBtn">标记已掌握 ✓</button><button class="secondary" id="nextBtn">下一个 →</button></div>
+</div>
+<div class="card"><h2>假名表</h2><p class="muted">点击任意假名，可直接跳转学习。绿色表示已标记掌握。</p><div id="kanaGrid"></div></div>
+</section>
+<section class="panel" id="write">
+<div class="card"><h2>手写练习</h2><p class="muted">根据罗马音，在下方空白区域用手指书写假名。页面不会自动判定笔迹，请对照目标字形检查。</p>
+<div class="kana-card" style="padding:8px"><div class="kana-big" id="writeTarget">あ</div><div class="romaji" id="writeRomaji">a</div><div class="kana-name">请尝试写出这个假名</div></div>
+<canvas id="pad" aria-label="手写练习区域"></canvas>
+<div class="row" style="margin-top:12px"><button class="secondary" id="clearPad">清空重写</button><button class="secondary" id="showGuide">显示淡色字形</button><button class="primary" id="nextWrite">换一个练习</button></div>
+<div class="notice" style="margin-top:12px">提示：先观察笔画形状，再写 2–3 次。此页面不加载外部字体、图片或脚本；个别字形显示效果取决于手机自带日文字体。</div>
+</div>
+</section>
+<section class="panel" id="quiz">
+<div class="card"><div class="row" style="justify-content:space-between"><h2>随机测试</h2><select id="quizMode"><option value="toRomaji">看假名选读音</option><option value="toKana">看读音选假名</option></select></div>
+<div class="row" style="justify-content:space-between"><span class="muted" id="quizNum">题目 1</span><span class="muted" id="score">答对 0 / 0</span></div><div class="progress"><span id="quizBar"></span></div>
+<div id="quizKana">ぬ</div><div id="quizPrompt" class="muted" style="text-align:center;margin-bottom:15px">请选择正确读音</div><div id="choices"></div>
+<div id="feedback" class="notice" style="margin-top:12px">选择一个答案开始测试。</div><div class="row" style="margin-top:13px"><button class="primary" id="nextQuestion">下一题 →</button><button class="secondary" id="restartQuiz">重新计分</button></div>
+</div>
+<div class="card"><h2>测试范围</h2><p class="muted">测试覆盖基础清音（平假名或片假名）。浊音、半浊音、拗音和小促音等进阶内容暂未纳入。</p></div>
+</section>
+</main>
+<footer>无需联网 · 无广告 · 无账号 · 纯本地单文件页面</footer>
+<script>
+const rows=[
+['あ行',[['あ','ア','a'],['い','イ','i'],['う','ウ','u'],['え','エ','e'],['お','オ','o']]],
+['か行',[['か','カ','ka'],['き','キ','ki'],['く','ク','ku'],['け','ケ','ke'],['こ','コ','ko']]],
+['さ行',[['さ','サ','sa'],['し','シ','shi'],['す','ス','su'],['せ','セ','se'],['そ','ソ','so']]],
+['た行',[['た','タ','ta'],['ち','チ','chi'],['つ','ツ','tsu'],['て','テ','te'],['と','ト','to']]],
+['な行',[['な','ナ','na'],['に','ニ','ni'],['ぬ','ヌ','nu'],['ね','ネ','ne'],['の','ノ','no']]],
+['は行',[['は','ハ','ha'],['ひ','ヒ','hi'],['ふ','フ','fu'],['へ','ヘ','he'],['ほ','ホ','ho']]],
+['ま行',[['ま','マ','ma'],['み','ミ','mi'],['む','ム','mu'],['め','メ','me'],['も','モ','mo']]],
+['や行',[['や','ヤ','ya'],['ゆ','ユ','yu'],['よ','ヨ','yo']]],
+['ら行',[['ら','ラ','ra'],['り','リ','ri'],['る','ル','ru'],['れ','レ','re'],['ろ','ロ','ro']]],
+['わ行',[['わ','ワ','wa'],['を','ヲ','wo'],['ん','ン','n']]]
+];
+const all=rows.flatMap(([row,items])=>items.map(([h,k,r])=>({h,k,r,row})));
+let script='hira', index=0, mastered=loadMastered();
+function loadMastered(){try{return JSON.parse(localStorage.getItem('kanaMastered')||'[]')}catch(e){return []}}
+function saveMastered(){try{localStorage.setItem('kanaMastered',JSON.stringify(mastered))}catch(e){}}
+function key(item){return script+':'+item.r}
+function current(){return all[index]}
+function char(item){return script==='hira'?item.h:item.k}
+function renderLearn(){
+ const it=current();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
+ document.getElementById('learnName').textContent=(script==='hira'?'平假名':'片假名')+' · '+it.row;
+ document.getElementById('learnCount').textContent=`第 ${index+1} / ${all.length} 个`;
+ const count=all.filter(x=>mastered.includes(script+':'+x.r)).length;
+ document.getElementById('learnProgress').textContent=`已掌握 ${count} 个`;
+ document.getElementById('learnBar').style.width=(count/all.length*100)+'%';
+ document.getElementById('knownBtn').textContent=mastered.includes(key(it))?'已掌握 ✓（取消标记）':'标记已掌握 ✓';
+ document.querySelectorAll('.tile').forEach(b=>{b.classList.toggle('selected',Number(b.dataset.index)===index);b.classList.toggle('done',mastered.includes(script+':'+all[Number(b.dataset.index)].r))});
+}
+function renderGrid(){const host=document.getElementById('kanaGrid');host.innerHTML='';rows.forEach(([row,items])=>{const title=document.createElement('div');title.className='smalltitle';title.textContent=row;host.appendChild(title);const grid=document.createElement('div');grid.className='grid';items.forEach(item=>{const i=all.indexOf(item),b=document.createElement('button');b.className='tile';b.dataset.index=i;b.innerHTML=`<span class="jp">${char(item)}</span><span class="ro">${item.r}</span>`;b.onclick=()=>{index=i;renderLearn();};grid.appendChild(b)});host.appendChild(grid)});renderLearn()}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='write')renderWriteTarget()});
+document.getElementById('scriptSelect').onchange=e=>{script=e.target.value;renderGrid();renderWriteTarget();newQuestion()};
+document.getElementById('prevBtn').onclick=()=>{index=(index+all.length-1)%all.length;renderLearn()};
+document.getElementById('nextBtn').onclick=()=>{index=(index+1)%all.length;renderLearn()};
+document.getElementById('knownBtn').onclick=()=>{const k=key(current());mastered=mastered.includes(k)?mastered.filter(x=>x!==k):[...mastered,k];saveMastered();renderLearn()};
+renderGrid();
+
+// Handwriting canvas: supports touch and mouse, with optional faint guide.
+const canvas=document.getElementById('pad'),ctx=canvas.getContext('2d');let drawing=false,guide=false,last=null;
+function setupCanvas(){const rect=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;const old=document.createElement('canvas');old.width=canvas.width;old.height=canvas.height;old.getContext('2d').drawImage(canvas,0,0);canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#25324b';if(old.width&&old.height)ctx.drawImage(old,0,0,old.width,old.height,0,0,rect.width,rect.height);if(guide)drawGuide()}
+function drawGuide(){const rect=canvas.getBoundingClientRect();ctx.save();ctx.fillStyle='rgba(69,104,245,.13)';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.min(rect.width*.52,145)}px "Hiragino Mincho ProN", "Yu Mincho", serif`;ctx.fillText(char(current()),rect.width/2,rect.height/2);ctx.restore()}
+function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+canvas.addEventListener('pointerdown',e=>{drawing=true;last=point(e);canvas.setPointerCapture(e.pointerId);ctx.beginPath();ctx.moveTo(last.x,last.y)});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();last=p});
+function stop(){drawing=false;last=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('pointerleave',e=>{if(e.buttons===0)stop()});
+function renderWriteTarget(){document.getElementById('writeTarget').textContent=char(current());document.getElementById('writeRomaji').textContent=current().r;clearPad()}
+function clearPad(){const r=canvas.getBoundingClientRect();ctx.clearRect(0,0,canvas.width,canvas.height);if(guide)drawGuide()}
+document.getElementById('clearPad').onclick=clearPad;
+document.getElementById('showGuide').onclick=()=>{guide=!guide;document.getElementById('showGuide').textContent=guide?'隐藏淡色字形':'显示淡色字形';clearPad()};
+document.getElementById('nextWrite').onclick=()=>{index=Math.floor(Math.random()*all.length);renderLearn();renderWriteTarget()};
+window.addEventListener('resize',setupCanvas);setTimeout(setupCanvas,50);
+
+// Random multiple-choice quiz.
+let qNum=1,asked=0,correct=0,answered=false,qItem=null;
+function shuffle(a){return a.sort(()=>Math.random()-.5)}
+function newQuestion(){qItem=all[Math.floor(Math.random()*all.length)];answered=false;document.getElementById('quizNum').textContent='题目 '+qNum;document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(asked?correct/asked*100:0)+'%';
+ const mode=document.getElementById('quizMode').value;document.getElementById('quizKana').textContent=mode==='toRomaji'?char(qItem):qItem.r;document.getElementById('quizPrompt').textContent=mode==='toRomaji'?'请选择正确读音':'请选择对应假名';
+ const opts=shuffle([qItem,...shuffle(all.filter(x=>x!==qItem)).slice(0,3)]);const host=document.getElementById('choices');host.innerHTML='';opts.forEach(it=>{const b=document.createElement('button');b.textContent=mode==='toRomaji'?it.r:char(it);b.onclick=()=>answer(b,it);host.appendChild(b)});document.getElementById('feedback').textContent='选择一个答案。'}
+function answer(btn,it){if(answered)return;answered=true;asked++;const ok=it===qItem;if(ok)correct++;btn.classList.add(ok?'correct':'wrong');document.querySelectorAll('#choices button').forEach(b=>{const isCorrect=b.textContent===(document.getElementById('quizMode').value==='toRomaji'?qItem.r:char(qItem));if(isCorrect)b.classList.add('correct')});document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(correct/asked*100)+'%';document.getElementById('feedback').textContent=ok?'回答正确！ '+char(qItem)+' = '+qItem.r:'再记一下：'+char(qItem)+' = '+qItem.r+'。绿色选项是正确答案。'}
+document.getElementById('nextQuestion').onclick=()=>{qNum++;newQuestion()};
+document.getElementById('restartQuiz').onclick=()=>{qNum=1;asked=0;correct=0;newQuestion()};
+document.getElementById('quizMode').onchange=()=>newQuestion();
+newQuestion();renderWriteTarget();
+</script>
+<script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {})); }</script>
+</body>
+</html>

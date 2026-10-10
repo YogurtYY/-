@@ -1,0 +1,11 @@
+{
+  "name": "五十音随身学",
+  "short_name": "五十音",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#f5f7fb",
+  "lang": "zh-CN",
+  "description": "支持逐个学习、手写练习和随机测试的离线五十音学习工具"
+}
