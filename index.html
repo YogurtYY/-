@@ -19,7 +19,7 @@ main{padding:14px;max-width:720px;margin:auto}.panel{display:none}.panel.active{
 h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 button,.btn{cursor:pointer}button.primary{background:var(--accent);color:white;border:0;border-radius:12px;padding:12px 15px;font-weight:700}button.secondary{background:var(--soft);color:var(--accent);border:0;border-radius:12px;padding:12px 15px;font-weight:700}button.light{background:#f0f2f7;border:0;border-radius:10px;padding:9px 12px;color:#39445a}
 select{border:1px solid var(--line);border-radius:10px;padding:10px;background:white;color:var(--ink);font-size:14px}
-.kana-card{text-align:center;padding:22px 12px}.kana-big{font-size:clamp(84px,24vw,126px);line-height:1.15;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}.romaji{font-size:23px;color:var(--accent);font-weight:700;margin:5px}.kana-name{font-size:14px;color:var(--muted)}
+.kana-card{text-align:center;padding:22px 12px}.kana-big{font-size:clamp(84px,24vw,126px);line-height:1.15;font-family:"Hiragino Mincho ProN","Yu Mincho",serif}.romaji{font-size:23px;color:var(--accent);font-weight:700;margin:5px}.kana-name{font-size:14px;color:var(--muted)}.audio-row{display:flex;justify-content:center;align-items:center;gap:9px;flex-wrap:wrap;margin:8px 0}.audio-status{font-size:12px;color:var(--muted);line-height:1.5}.speaker{border:0;border-radius:999px;background:#eaf0ff;color:#3455d1;padding:8px 12px;font-weight:700}.toggle{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .progress{height:7px;border-radius:99px;background:#edf0f6;overflow:hidden;margin:12px 0}.progress span{display:block;height:100%;background:var(--accent);width:0}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.tile{border:1px solid var(--line);border-radius:11px;background:white;min-height:64px;padding:5px 2px;text-align:center;color:var(--ink)}.tile .jp{font-size:27px;display:block}.tile .ro{font-size:11px;color:var(--muted)}.tile.done{background:#e9f8f1;border-color:#b7e6d0}.tile.selected{outline:2px solid var(--accent)}
 .smalltitle{font-size:13px;color:var(--muted);margin:15px 0 8px}
@@ -40,7 +40,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <div class="card">
 <div class="row" style="justify-content:space-between"><h2>学习假名</h2><select id="scriptSelect"><option value="hira">平假名</option><option value="kata">片假名</option></select></div>
 <div class="row" style="justify-content:space-between"><span class="muted" id="learnCount">第 1 个</span><span class="muted" id="learnProgress">已掌握 0 个</span></div><div class="progress"><span id="learnBar"></span></div>
-<div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div></div>
+<div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div><div class="audio-row"><button class="speaker" id="speakCurrent" type="button">🔊 听发音</button><label class="toggle"><input id="autoSpeak" type="checkbox">切换时自动朗读</label></div><div id="audioStatus" class="audio-status">发音使用手机/浏览器的日语语音；首次使用请点“听发音”测试。</div></div>
 <div class="row" style="justify-content:center"><button class="secondary" id="prevBtn">← 上一个</button><button class="primary" id="knownBtn">标记已掌握 ✓</button><button class="secondary" id="nextBtn">下一个 →</button></div>
 </div>
 <div class="card"><h2>假名表</h2><p class="muted">点击任意假名，可直接跳转学习。绿色表示已标记掌握。</p><div id="kanaGrid"></div></div>
@@ -54,15 +54,15 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 </div>
 </section>
 <section class="panel" id="quiz">
-<div class="card"><div class="row" style="justify-content:space-between"><h2>随机测试</h2><select id="quizMode"><option value="toRomaji">看假名选读音</option><option value="toKana">看读音选假名</option></select></div>
+<div class="card"><div class="row" style="justify-content:space-between"><h2>随机测试</h2><select id="quizMode"><option value="toRomaji">看假名选读音</option><option value="toKana">看读音选假名</option><option value="listenKana">听发音选假名</option></select></div>
 <div class="row" style="justify-content:space-between"><span class="muted" id="quizNum">题目 1</span><span class="muted" id="score">答对 0 / 0</span></div><div class="progress"><span id="quizBar"></span></div>
-<div id="quizKana">ぬ</div><div id="quizPrompt" class="muted" style="text-align:center;margin-bottom:15px">请选择正确读音</div><div id="choices"></div>
+<div id="quizKana">ぬ</div><div class="audio-row"><button class="speaker hidden" id="replayQuestion" type="button">🔊 重播题目</button></div><div id="quizPrompt" class="muted" style="text-align:center;margin-bottom:15px">请选择正确读音</div><div id="choices"></div>
 <div id="feedback" class="notice" style="margin-top:12px">选择一个答案开始测试。</div><div class="row" style="margin-top:13px"><button class="primary" id="nextQuestion">下一题 →</button><button class="secondary" id="restartQuiz">重新计分</button></div>
 </div>
 <div class="card"><h2>测试范围</h2><p class="muted">测试覆盖基础清音（平假名或片假名）。浊音、半浊音、拗音和小促音等进阶内容暂未纳入。</p></div>
 </section>
 </main>
-<footer>无需联网 · 无广告 · 无账号 · 纯本地单文件页面</footer>
+<footer>无需联网 · 无广告 · 无账号 · 发音调用设备系统语音，不请求远程音频</footer>
 <script>
 const rows=[
 ['あ行',[['あ','ア','a'],['い','イ','i'],['う','ウ','u'],['え','エ','e'],['お','オ','o']]],
@@ -78,6 +78,12 @@ const rows=[
 ];
 const all=rows.flatMap(([row,items])=>items.map(([h,k,r])=>({h,k,r,row})));
 let script='hira', index=0, mastered=loadMastered();
+// Local system speech: no remote audio files or API calls. Offline voice availability depends on device settings.
+let japaneseVoice=null;
+function findJapaneseVoice(){if(!('speechSynthesis' in window))return null;const voices=window.speechSynthesis.getVoices()||[];return voices.find(v=>/^ja(-|_|$)/i.test(v.lang))||null;}
+function refreshAudioStatus(){const status=document.getElementById('audioStatus');if(!('speechSynthesis' in window)){status.textContent='当前浏览器不支持系统语音合成，无法播放发音。';return;}japaneseVoice=findJapaneseVoice();status.textContent=japaneseVoice?('已找到日语语音：'+japaneseVoice.name+'（'+japaneseVoice.lang+'）。离线可用性取决于该语音是否已下载。'):'暂未检测到日语语音。可以检查 iPhone 的设置 → 辅助使用 → 朗读内容 → 声音，下载日语语音后重试；不同系统版本路径可能略有差异。';}
+function speakKana(item,force=false){if(!('speechSynthesis' in window)){refreshAudioStatus();return false;}try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(item.h);u.lang='ja-JP';u.rate=0.78;u.pitch=1;japaneseVoice=findJapaneseVoice();if(japaneseVoice)u.voice=japaneseVoice;u.onerror=()=>refreshAudioStatus();window.speechSynthesis.speak(u);return true;}catch(e){refreshAudioStatus();return false;}}
+if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=refreshAudioStatus;setTimeout(refreshAudioStatus,250);}
 function loadMastered(){try{return JSON.parse(localStorage.getItem('kanaMastered')||'[]')}catch(e){return []}}
 function saveMastered(){try{localStorage.setItem('kanaMastered',JSON.stringify(mastered))}catch(e){}}
 function key(item){return script+':'+item.r}
@@ -86,6 +92,7 @@ function char(item){return script==='hira'?item.h:item.k}
 function renderLearn(){
  const it=current();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
  document.getElementById('learnName').textContent=(script==='hira'?'平假名':'片假名')+' · '+it.row;
+ if(document.getElementById('autoSpeak')?.checked) speakKana(it);
  document.getElementById('learnCount').textContent=`第 ${index+1} / ${all.length} 个`;
  const count=all.filter(x=>mastered.includes(script+':'+x.r)).length;
  document.getElementById('learnProgress').textContent=`已掌握 ${count} 个`;
@@ -99,6 +106,7 @@ document.getElementById('scriptSelect').onchange=e=>{script=e.target.value;rende
 document.getElementById('prevBtn').onclick=()=>{index=(index+all.length-1)%all.length;renderLearn()};
 document.getElementById('nextBtn').onclick=()=>{index=(index+1)%all.length;renderLearn()};
 document.getElementById('knownBtn').onclick=()=>{const k=key(current());mastered=mastered.includes(k)?mastered.filter(x=>x!==k):[...mastered,k];saveMastered();renderLearn()};
+document.getElementById('speakCurrent').onclick=()=>{if(speakKana(current()))document.getElementById('audioStatus').textContent='正在播放日语发音；如果没有声音，请检查手机静音、媒体音量及日语语音设置。'};
 renderGrid();
 
 // Handwriting canvas: supports touch and mouse, with optional faint guide.
@@ -120,12 +128,13 @@ window.addEventListener('resize',setupCanvas);setTimeout(setupCanvas,50);
 let qNum=1,asked=0,correct=0,answered=false,qItem=null;
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
 function newQuestion(){qItem=all[Math.floor(Math.random()*all.length)];answered=false;document.getElementById('quizNum').textContent='题目 '+qNum;document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(asked?correct/asked*100:0)+'%';
- const mode=document.getElementById('quizMode').value;document.getElementById('quizKana').textContent=mode==='toRomaji'?char(qItem):qItem.r;document.getElementById('quizPrompt').textContent=mode==='toRomaji'?'请选择正确读音':'请选择对应假名';
- const opts=shuffle([qItem,...shuffle(all.filter(x=>x!==qItem)).slice(0,3)]);const host=document.getElementById('choices');host.innerHTML='';opts.forEach(it=>{const b=document.createElement('button');b.textContent=mode==='toRomaji'?it.r:char(it);b.onclick=()=>answer(b,it);host.appendChild(b)});document.getElementById('feedback').textContent='选择一个答案。'}
+ const mode=document.getElementById('quizMode').value;const listen=mode==='listenKana';document.getElementById('quizKana').textContent=listen?'🔊 听音辨假名':(mode==='toRomaji'?char(qItem):qItem.r);document.getElementById('quizPrompt').textContent=mode==='toRomaji'?'请选择正确读音':(listen?'先听发音，再选择对应假名':'请选择对应假名');document.getElementById('replayQuestion').classList.toggle('hidden',!listen);
+ const opts=shuffle([qItem,...shuffle(all.filter(x=>x!==qItem)).slice(0,3)]);const host=document.getElementById('choices');host.innerHTML='';opts.forEach(it=>{const b=document.createElement('button');b.textContent=mode==='toRomaji'?it.r:char(it);b.onclick=()=>answer(b,it);host.appendChild(b)});document.getElementById('feedback').textContent='选择一个答案。';if(listen){setTimeout(()=>speakKana(qItem),120);}}
 function answer(btn,it){if(answered)return;answered=true;asked++;const ok=it===qItem;if(ok)correct++;btn.classList.add(ok?'correct':'wrong');document.querySelectorAll('#choices button').forEach(b=>{const isCorrect=b.textContent===(document.getElementById('quizMode').value==='toRomaji'?qItem.r:char(qItem));if(isCorrect)b.classList.add('correct')});document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(correct/asked*100)+'%';document.getElementById('feedback').textContent=ok?'回答正确！ '+char(qItem)+' = '+qItem.r:'再记一下：'+char(qItem)+' = '+qItem.r+'。绿色选项是正确答案。'}
 document.getElementById('nextQuestion').onclick=()=>{qNum++;newQuestion()};
 document.getElementById('restartQuiz').onclick=()=>{qNum=1;asked=0;correct=0;newQuestion()};
 document.getElementById('quizMode').onchange=()=>newQuestion();
+document.getElementById('replayQuestion').onclick=()=>speakKana(qItem);
 newQuestion();renderWriteTarget();
 </script>
 <script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {})); }</script>
