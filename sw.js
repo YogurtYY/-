@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kana-study-v3';
+const CACHE_NAME = 'kana-study-v4';
 const CORE_FILES = ['./', './index.html', './manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_FILES)));
@@ -18,4 +18,3 @@ self.addEventListener('fetch', event => {
     return response;
   }).catch(() => caches.match(new URL('./index.html', self.registration.scope).href))));
 });
-
