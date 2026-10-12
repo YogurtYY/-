@@ -32,6 +32,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 .memory-card{margin:0 0 16px;padding:14px;border:1px solid #dce5ff;border-radius:15px;background:linear-gradient(145deg,#f7f9ff,#fff)}
 .memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.memory-head h3{font-size:15px;margin:0}.memory-toggle{border:0;border-radius:9px;padding:8px 10px;background:#eaf0ff;color:#4568f5;font-weight:700;font-size:12px}
 .memory-body{font-size:14px;line-height:1.75;color:#26334b;white-space:pre-line}.memory-line{margin:5px 0}.memory-label{font-weight:700;color:#4568f5}.memory-tip{font-size:12px;color:#697386;margin-top:8px}
+.example-card{margin:0 0 16px;padding:14px;border:1px solid #d7eee4;border-radius:15px;background:linear-gradient(145deg,#f4fcf8,#fff)}.example-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.example-head h3{font-size:15px;margin:0}.example-word{font-size:19px;font-weight:800;line-height:1.5}.example-sentence{font-size:20px;font-weight:700;line-height:1.7;margin:8px 0}.example-translation{font-size:14px;color:#287655;margin-bottom:10px}.example-detail{font-size:13px;line-height:1.75;color:#35465a;background:#fff;border-radius:10px;padding:10px;margin-top:9px;white-space:pre-line}.example-buttons{display:flex;gap:8px;flex-wrap:wrap}.example-buttons button{flex:1;min-width:110px}.example-note{font-size:11px;color:#697386;margin-top:8px;line-height:1.5}
 
 </style>
 </head>
@@ -47,6 +48,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <div class="row" style="justify-content:space-between"><span class="muted" id="learnCount">第 1 个</span><span class="muted" id="learnProgress">已掌握 0 个</span></div><div class="progress"><span id="learnBar"></span></div>
 <div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div><div class="audio-row"><button class="speaker" id="speakCurrent" type="button">🔊 听发音</button><label class="toggle"><input id="autoSpeak" type="checkbox">切换时自动朗读</label></div><div id="audioStatus" class="audio-status">发音使用手机/浏览器的日语语音；首次使用请点“听发音”测试。</div></div>
 <div class="memory-card" id="memoryCard" aria-live="polite"><div class="memory-head"><h3>💡 记忆小窍门</h3><button type="button" class="memory-toggle" id="memoryToggle" aria-expanded="true">收起提示</button></div><div class="memory-body" id="memoryBody"></div><div class="memory-tip">记忆内容以你提供的视频文稿为准；平假名与片假名的联想分别保留。</div></div>
+<div class="example-card" id="exampleCard"><div class="example-head"><h3>📘 例句学习</h3><span class="muted" id="exampleCoverage">词汇 · 短句</span></div><div class="example-word" id="exampleWord"></div><div class="muted" id="exampleWordMeaning"></div><div class="example-sentence" id="exampleSentence"></div><div class="example-translation" id="exampleTranslation"></div><div class="example-buttons"><button class="speaker" id="speakExample" type="button">🔊 朗读例句</button><button class="secondary" id="toggleExampleDetail" type="button">逐词拆解</button><button class="secondary" id="toggleExampleMeaning" type="button">隐藏中文</button></div><div class="example-detail hidden" id="exampleDetail"></div><div class="example-note">例句优先使用初级常见表达；语音调用设备系统日语语音。少数句子会复习多个假名。</div></div>
 <div class="row" style="justify-content:center"><button class="secondary" id="prevBtn">← 上一个</button><button class="primary" id="knownBtn">标记已掌握 ✓</button><button class="secondary" id="nextBtn">下一个 →</button></div>
 </div>
 <div class="card"><h2>假名表</h2><p class="muted">点击任意假名，可直接跳转学习。绿色表示已标记掌握。</p><div id="kanaGrid"></div></div>
@@ -145,6 +147,60 @@ function renderMemory(){const it=current();const note=memoryNotes[it.r]||{};cons
  if(!note.h&&!note.k&&!note.story&&!note.tip){add('记忆点','暂无单独整理的联想提示。');}
 }
 
+// Beginner-friendly examples: each entry is keyed by the kana's romaji.
+// Sentences use spaces between meaningful chunks to help first-time learners.
+const exampleNotes={
+'a':{word:'あさ（朝）',meaning:'早晨',sentence:'あさ、みずを のみます。',translation:'早上喝水。',parts:'あさ = 早晨\nみず = 水\nを = 宾语助词\nのみます = 喝（礼貌表达）'},
+'i':{word:'いえ（家）',meaning:'家',sentence:'いえに かえります。',translation:'回家。',parts:'いえ = 家\nに = 表示到达地点\nかえります = 回去、返回'},
+'u':{word:'うみ（海）',meaning:'海',sentence:'うみを みます。',translation:'看海。',parts:'うみ = 海\nを = 宾语助词\nみます = 看'},
+'e':{word:'えき（駅）',meaning:'车站',sentence:'えきに いきます。',translation:'去车站。',parts:'えき = 车站\nに = 表示目的地\nいきます = 去'},
+'o':{word:'おちゃ（お茶）',meaning:'茶',sentence:'おちゃを のみます。',translation:'喝茶。',parts:'おちゃ = 茶\nを = 宾语助词\nのみます = 喝'},
+'ka':{word:'かさ（傘）',meaning:'伞',sentence:'かさを かいます。',translation:'买伞。',parts:'かさ = 伞\nを = 宾语助词\nかいます = 买'},
+'ki':{word:'き（木）',meaning:'树、木头',sentence:'きが あります。',translation:'有一棵树。',parts:'き = 树\nが = 标记主语\nあります = 有（用于物品、植物等）'},
+'ku':{word:'くつ（靴）',meaning:'鞋子',sentence:'くつを はきます。',translation:'穿鞋。',parts:'くつ = 鞋子\nを = 宾语助词\nはきます = 穿（鞋、裤子等）'},
+'ke':{word:'けさ（今朝）',meaning:'今天早上',sentence:'けさ、パンを たべました。',translation:'今天早上吃了面包。',parts:'けさ = 今天早上\nパン = 面包\nを = 宾语助词\nたべました = 吃了'},
+'ko':{word:'ここ',meaning:'这里',sentence:'ここは えきです。',translation:'这里是车站。',parts:'ここ = 这里\nは = 主题助词（读作 wa）\nえき = 车站\nです = 是（礼貌表达）'},
+'sa':{word:'さかな（魚）',meaning:'鱼',sentence:'さかなを たべます。',translation:'吃鱼。',parts:'さかな = 鱼\nを = 宾语助词\nたべます = 吃'},
+'shi':{word:'しお（塩）',meaning:'盐',sentence:'しおを ください。',translation:'请给我盐。',parts:'しお = 盐\nを = 宾语助词\nください = 请给我……'},
+'su':{word:'すし（寿司）',meaning:'寿司',sentence:'すしが すきです。',translation:'我喜欢寿司。',parts:'すし = 寿司\nが = 标记喜好对象\nすきです = 喜欢'},
+'se':{word:'せんせい（先生）',meaning:'老师',sentence:'せんせい、こんにちは。',translation:'老师，您好。',parts:'せんせい = 老师\nこんにちは = 你好／您好（白天问候）'},
+'so':{word:'そら（空）',meaning:'天空',sentence:'そらが あおいです。',translation:'天空是蓝色的。',parts:'そら = 天空\nが = 标记主语\nあおい = 蓝色的\nです = 礼貌句尾'},
+'ta':{word:'たまご（卵）',meaning:'鸡蛋',sentence:'たまごを たべます。',translation:'吃鸡蛋。',parts:'たまご = 鸡蛋\nを = 宾语助词\nたべます = 吃'},
+'chi':{word:'ちず（地図）',meaning:'地图',sentence:'ちずを みます。',translation:'看地图。',parts:'ちず = 地图\nを = 宾语助词\nみます = 看'},
+'tsu':{word:'つき（月）',meaning:'月亮',sentence:'つきが きれいです。',translation:'月亮很美。',parts:'つき = 月亮\nが = 标记主语\nきれい = 美丽、漂亮\nです = 礼貌句尾'},
+'te':{word:'て（手）',meaning:'手',sentence:'てを あらいます。',translation:'洗手。',parts:'て = 手\nを = 宾语助词\nあらいます = 洗'},
+'to':{word:'とけい（時計）',meaning:'钟、手表',sentence:'とけいを みます。',translation:'看时间／看钟表。',parts:'とけい = 钟表\nを = 宾语助词\nみます = 看'},
+'na':{word:'なまえ（名前）',meaning:'名字',sentence:'なまえを おしえて ください。',translation:'请告诉我你的名字。',parts:'なまえ = 名字\nを = 宾语助词\nおしえてください = 请告诉我'},
+'ni':{word:'にく（肉）',meaning:'肉',sentence:'にくを たべます。',translation:'吃肉。',parts:'にく = 肉\nを = 宾语助词\nたべます = 吃'},
+'nu':{word:'ぬの（布）',meaning:'布',sentence:'ぬのを かいます。',translation:'买布。',parts:'ぬの = 布\nを = 宾语助词\nかいます = 买'},
+'ne':{word:'ねこ（猫）',meaning:'猫',sentence:'ねこが います。',translation:'有一只猫。',parts:'ねこ = 猫\nが = 标记主语\nいます = 有（用于人或动物）'},
+'no':{word:'のみもの（飲み物）',meaning:'饮料',sentence:'のみものを ください。',translation:'请给我一杯饮料。',parts:'のみもの = 饮料\nを = 宾语助词\nください = 请给我……'},
+'ha':{word:'はな（花）',meaning:'花',sentence:'はなが きれいです。',translation:'花很漂亮。',parts:'はな = 花\nが = 标记主语\nきれい = 漂亮\nです = 礼貌句尾'},
+'hi':{word:'ひ（日）',meaning:'太阳、日子',sentence:'ひが でました。',translation:'太阳出来了。',parts:'ひ = 太阳／日\nが = 标记主语\nでました = 出来了'},
+'fu':{word:'ふゆ（冬）',meaning:'冬天',sentence:'ふゆは さむいです。',translation:'冬天很冷。',parts:'ふゆ = 冬天\nは = 主题助词（读作 wa）\nさむい = 冷\nです = 礼貌句尾'},
+'he':{word:'へや（部屋）',meaning:'房间',sentence:'へやに ねこが います。',translation:'房间里有一只猫。',parts:'へや = 房间\nに = 表示所在地点\nねこ = 猫\nが います = 有……（人或动物）'},
+'ho':{word:'ほし（星）',meaning:'星星',sentence:'ほしが みえます。',translation:'能看见星星。',parts:'ほし = 星星\nが = 标记主语\nみえます = 看得见'},
+'ma':{word:'まち（町）',meaning:'城镇、街区',sentence:'まちを あるきます。',translation:'在街上走／逛街区。',parts:'まち = 城镇、街区\nを = 表示移动经过的范围\nあるきます = 走路'},
+'mi':{word:'みず（水）',meaning:'水',sentence:'みずを ください。',translation:'请给我水。',parts:'みず = 水\nを = 宾语助词\nください = 请给我……'},
+'mu':{word:'むし（虫）',meaning:'虫子',sentence:'むしが います。',translation:'有虫子。',parts:'むし = 虫子\nが = 标记主语\nいます = 有（用于人或动物）'},
+'me':{word:'め（目）',meaning:'眼睛',sentence:'めを とじます。',translation:'闭上眼睛。',parts:'め = 眼睛\nを = 宾语助词\nとじます = 闭上'},
+'mo':{word:'もも（桃）',meaning:'桃子',sentence:'ももを たべます。',translation:'吃桃子。',parts:'もも = 桃子\nを = 宾语助词\nたべます = 吃'},
+'ya':{word:'やま（山）',meaning:'山',sentence:'やまに のぼります。',translation:'爬山。',parts:'やま = 山\nに = 表示目的地\nのぼります = 登上、攀登'},
+'yu':{word:'ゆき（雪）',meaning:'雪',sentence:'ゆきが ふっています。',translation:'正在下雪。',parts:'ゆき = 雪\nが = 标记主语\nふっています = 正在下（雨、雪）'},
+'yo':{word:'よる（夜）',meaning:'夜晚',sentence:'よる、ほんを よみます。',translation:'晚上读书。',parts:'よる = 夜晚\nほん = 书\nを = 宾语助词\nよみます = 阅读'},
+'ra':{word:'らいしゅう（来週）',meaning:'下周',sentence:'らいしゅう、にほんへ いきます。',translation:'下周去日本。',parts:'らいしゅう = 下周\nにほん = 日本\nへ = 表示方向（读作 e）\nいきます = 去'},
+'ri':{word:'りんご',meaning:'苹果',sentence:'りんごを ひとつ ください。',translation:'请给我一个苹果。',parts:'りんご = 苹果\nを = 宾语助词\nひとつ = 一个（通用计数）\nください = 请给我……'},
+'ru':{word:'るす（留守）',meaning:'不在家',sentence:'いま、るすです。',translation:'现在不在家。',parts:'いま = 现在\nるす = 不在家\nです = 是（礼貌表达）'},
+'re':{word:'れいぞうこ（冷蔵庫）',meaning:'冰箱',sentence:'れいぞうこに みずが あります。',translation:'冰箱里有水。',parts:'れいぞうこ = 冰箱\nに = 表示所在地点\nみず = 水\nが あります = 有（用于物品）'},
+'ro':{word:'ろく（六）',meaning:'六',sentence:'りんごを ろっこ かいました。',translation:'买了六个苹果。',parts:'りんご = 苹果\nを = 宾语助词\nろっこ = 六个（口语计数形式）\nかいました = 买了'},
+'wa':{word:'わたし（私）',meaning:'我',sentence:'わたしは がくせいです。',translation:'我是学生。',parts:'わたし = 我\nは = 主题助词（读作 wa）\nがくせい = 学生\nです = 是（礼貌表达）'},
+'wo':{word:'みずを',meaning:'水（を 是宾语助词）',sentence:'みずを のみます。',translation:'喝水。',parts:'みず = 水\nを = 宾语助词，现代日语中通常读作 o\nのみます = 喝'},
+'n':{word:'にほん（日本）',meaning:'日本',sentence:'にほんごを べんきょうします。',translation:'学习日语。',parts:'にほんご = 日语\nを = 宾语助词\nべんきょうします = 学习\n补充：ん 常出现在词中或词尾，如 にほん、りんご。'}
+};
+let exampleDetailVisible=false, exampleMeaningVisible=true;
+function speakJapanese(text,rate=0.82){if(!('speechSynthesis' in window)){document.getElementById('exampleDetail').textContent='当前浏览器不支持系统语音合成。';document.getElementById('exampleDetail').classList.remove('hidden');return false;}try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/\s+/g,''));u.lang='ja-JP';u.rate=rate;u.pitch=1;const v=findJapaneseVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);return true;}catch(e){return false;}}
+function renderExample(){const it=current(),ex=exampleNotes[it.r]||exampleNotes.n;document.getElementById('exampleWord').textContent=ex.word;document.getElementById('exampleWordMeaning').textContent='词义：'+ex.meaning;document.getElementById('exampleSentence').textContent=ex.sentence;document.getElementById('exampleTranslation').textContent=ex.translation;document.getElementById('exampleDetail').textContent=ex.parts;document.getElementById('exampleDetail').classList.toggle('hidden',!exampleDetailVisible);document.getElementById('toggleExampleDetail').textContent=exampleDetailVisible?'收起拆解':'逐词拆解';document.getElementById('exampleTranslation').classList.toggle('hidden',!exampleMeaningVisible);document.getElementById('exampleWordMeaning').classList.toggle('hidden',!exampleMeaningVisible);document.getElementById('toggleExampleMeaning').textContent=exampleMeaningVisible?'隐藏中文':'显示中文';}
+
 function loadMastered(){try{return JSON.parse(localStorage.getItem('kanaMastered')||'[]')}catch(e){return []}}
 function saveMastered(){try{localStorage.setItem('kanaMastered',JSON.stringify(mastered))}catch(e){}}
 function key(item){return script+':'+item.r}
@@ -154,6 +210,7 @@ function renderLearn(){
  const it=current();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
  document.getElementById('learnName').textContent=(script==='hira'?'平假名':'片假名')+' · '+it.row;
   renderMemory();
+ renderExample();
  if(document.getElementById('autoSpeak')?.checked) speakKana(it);
  document.getElementById('learnCount').textContent=`第 ${index+1} / ${all.length} 个`;
  const count=all.filter(x=>mastered.includes(script+':'+x.r)).length;
@@ -169,6 +226,9 @@ document.getElementById('prevBtn').onclick=()=>{index=(index+all.length-1)%all.l
 document.getElementById('nextBtn').onclick=()=>{index=(index+1)%all.length;renderLearn()};
 document.getElementById('knownBtn').onclick=()=>{const k=key(current());mastered=mastered.includes(k)?mastered.filter(x=>x!==k):[...mastered,k];saveMastered();renderLearn()};
 let memoryExpanded=true;document.getElementById('memoryToggle').onclick=()=>{memoryExpanded=!memoryExpanded;document.getElementById('memoryBody').classList.toggle('hidden',!memoryExpanded);document.querySelector('.memory-tip').classList.toggle('hidden',!memoryExpanded);document.getElementById('memoryToggle').textContent=memoryExpanded?'收起提示':'显示记忆提示';document.getElementById('memoryToggle').setAttribute('aria-expanded',String(memoryExpanded));};
+document.getElementById('speakExample').onclick=()=>{const ex=exampleNotes[current().r]||exampleNotes.n;speakJapanese(ex.sentence);};
+document.getElementById('toggleExampleDetail').onclick=()=>{exampleDetailVisible=!exampleDetailVisible;renderExample();};
+document.getElementById('toggleExampleMeaning').onclick=()=>{exampleMeaningVisible=!exampleMeaningVisible;renderExample();};
 document.getElementById('speakCurrent').onclick=()=>{if(speakKana(current()))document.getElementById('audioStatus').textContent='正在播放日语发音；如果没有声音，请检查手机静音、媒体音量及日语语音设置。'};
 renderGrid();renderLearn();
 
