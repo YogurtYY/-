@@ -23,7 +23,6 @@ select{border:1px solid var(--line);border-radius:10px;padding:10px;background:w
 .progress{height:7px;border-radius:99px;background:#edf0f6;overflow:hidden;margin:12px 0}.progress span{display:block;height:100%;background:var(--accent);width:0}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.tile{border:1px solid var(--line);border-radius:11px;background:white;min-height:64px;padding:5px 2px;text-align:center;color:var(--ink)}.tile .jp{font-size:27px;display:block}.tile .ro{font-size:11px;color:var(--muted)}.tile.done{background:#e9f8f1;border-color:#b7e6d0}.tile.selected{outline:2px solid var(--accent)}
 .smalltitle{font-size:13px;color:var(--muted);margin:15px 0 8px}
-.stroke-demo{margin:0 0 12px;padding:14px;border:1px solid #dce5ff;border-radius:15px;background:#f8faff;text-align:center}.stroke-stage{height:190px;display:flex;align-items:center;justify-content:center;overflow:hidden}.stroke-glyph{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(100px,32vw,150px);line-height:1;color:var(--accent);animation:glyphReveal 1.6s ease-in-out both}.stroke-glyph.playing{animation:glyphReveal 1.6s ease-in-out both}@keyframes glyphReveal{0%{opacity:.05;transform:scale(.88);filter:blur(5px);clip-path:inset(100% 0 0 0)}45%{opacity:.75;filter:blur(1px);clip-path:inset(45% 0 0 0)}100%{opacity:1;transform:scale(1);filter:none;clip-path:inset(0 0 0 0)}}
 canvas{display:block;width:100%;height:270px;border:1.5px dashed #b9c3d6;border-radius:14px;background-color:white;touch-action:none}
 #quizKana{font-size:90px;text-align:center;line-height:1.25;margin:8px 0}#choices{display:grid;grid-template-columns:1fr 1fr;gap:9px}#choices button{padding:15px 8px;font-size:17px;border:1px solid var(--line);background:#fff;border-radius:12px;color:var(--ink)}#choices button.correct{background:#e3f8ed;border-color:#72c99d}#choices button.wrong{background:#fff0f1;border-color:#e99aa3}
 .notice{padding:10px 12px;background:#f5f7fb;border-radius:10px;font-size:13px;color:var(--muted);line-height:1.6}.hidden{display:none!important}
@@ -47,7 +46,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <div class="card">
 <div class="row" style="justify-content:space-between"><h2>学习假名</h2><select id="scriptSelect"><option value="hira">平假名</option><option value="kata">片假名</option></select></div>
 <div class="row" style="justify-content:space-between"><span class="muted" id="learnCount">第 1 个</span><span class="muted" id="learnProgress">已掌握 0 个</span></div><div class="progress"><span id="learnBar"></span></div>
-<div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div><div class="audio-row"><button class="speaker" id="speakCurrent" type="button">🔊 听发音</button><label class="toggle"><input id="autoSpeak" type="checkbox">切换时自动朗读</label></div><div id="audioStatus" class="audio-status">发音使用手机/浏览器的日语语音；首次使用请点“听发音”测试。</div></div>
+<div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div><div class="audio-row"><button class="speaker" id="speakCurrent" type="button">🔊 听发音</button><label class="toggle"><input id="autoSpeak" type="checkbox">切换时自动朗读</label></div><div id="audioStatus" class="audio-status">发音使用手机/浏览器的日语语音；首次使用请点“听发音”测试。</div><div class="muted" style="font-size:12px;margin-top:8px">手机操作提示：在假名卡片上向左滑切换下一个，向右滑返回上一个。</div></div>
 <div class="memory-card" id="memoryCard" aria-live="polite"><div class="memory-head"><h3>💡 记忆小窍门</h3><button type="button" class="memory-toggle" id="memoryToggle" aria-expanded="true">收起提示</button></div><div class="memory-body" id="memoryBody"></div><div class="memory-tip">记忆内容以你提供的视频文稿为准；平假名与片假名的联想分别保留。</div></div>
 <div class="example-card" id="exampleCard"><div class="example-head"><h3>📘 例句学习</h3><span class="muted" id="exampleCoverage">词汇 · 短句</span></div><div class="example-word" id="exampleWord"></div><div class="muted" id="exampleWordMeaning"></div><div class="example-sentence" id="exampleSentence"></div><div class="example-translation" id="exampleTranslation"></div><div class="example-buttons"><button class="speaker" id="speakExample" type="button">🔊 朗读例句</button><button class="secondary" id="toggleExampleDetail" type="button">逐词拆解</button><button class="secondary" id="toggleExampleMeaning" type="button">隐藏中文</button></div><div class="example-detail hidden" id="exampleDetail"></div><div class="example-note">例句优先使用初级常见表达；语音调用设备系统日语语音。少数句子会复习多个假名。</div></div>
 <div class="row" style="justify-content:center"><button class="secondary" id="prevBtn">← 上一个</button><button class="primary" id="knownBtn">标记已掌握 ✓</button><button class="secondary" id="nextBtn">下一个 →</button></div>
@@ -57,7 +56,6 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <section class="panel" id="write">
 <div class="card"><h2>手写练习</h2><p class="muted">根据罗马音，在下方空白区域用手指书写假名。页面不会自动判定笔迹，请对照目标字形检查。</p>
 <div class="kana-card" style="padding:8px"><div class="kana-big" id="writeTarget">あ</div><div class="romaji" id="writeRomaji">a</div><div class="kana-name">请尝试写出这个假名</div></div>
-<div class="stroke-demo"><div class="row" style="justify-content:space-between"><strong>自动字形演示</strong><button class="secondary" id="replayStroke" type="button">▶ 重新播放</button></div><div class="stroke-stage"><div class="stroke-glyph" id="strokeGlyph" aria-label="假名字形动画">あ</div></div><div class="muted" id="strokeHint">自动播放当前假名的字形显现动画。</div></div>
 <canvas id="pad" aria-label="手写练习区域"></canvas>
 <div class="row" style="margin-top:12px"><button class="secondary" id="clearPad">清空重写</button><button class="secondary" id="showGuide">显示淡色字形</button><button class="primary" id="nextWrite">换一个练习</button></div>
 <div class="notice" style="margin-top:12px">提示：先观察笔画形状，再写 2–3 次。此页面不加载外部字体、图片或脚本；个别字形显示效果取决于手机自带日文字体。</div>
@@ -200,7 +198,7 @@ const exampleNotes={
 'n':{word:'にほん（日本）',meaning:'日本',sentence:'にほんごを べんきょうします。',translation:'学习日语。',parts:'にほんご = 日语\nを = 宾语助词\nべんきょうします = 学习\n补充：ん 常出现在词中或词尾，如 にほん、りんご。'}
 };
 let exampleDetailVisible=false, exampleMeaningVisible=true;
-function speakJapanese(text,rate=0.82){if(!('speechSynthesis' in window)){document.getElementById('exampleDetail').textContent='当前浏览器不支持系统语音合成。';document.getElementById('exampleDetail').classList.remove('hidden');return false;}try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/\s+/g,''));u.lang='ja-JP';u.rate=rate;u.pitch=1;const v=findJapaneseVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);return true;}catch(e){return false;}}
+function speakJapanese(text,rate=0.41){if(!('speechSynthesis' in window)){document.getElementById('exampleDetail').textContent='当前浏览器不支持系统语音合成。';document.getElementById('exampleDetail').classList.remove('hidden');return false;}try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/\s+/g,''));u.lang='ja-JP';u.rate=rate;u.pitch=1;const v=findJapaneseVoice();if(v)u.voice=v;window.speechSynthesis.speak(u);return true;}catch(e){return false;}}
 function renderExample(){const it=current(),ex=exampleNotes[it.r]||exampleNotes.n;document.getElementById('exampleWord').textContent=ex.word;document.getElementById('exampleWordMeaning').textContent='词义：'+ex.meaning;document.getElementById('exampleSentence').textContent=ex.sentence;document.getElementById('exampleTranslation').textContent=ex.translation;document.getElementById('exampleDetail').textContent=ex.parts;document.getElementById('exampleDetail').classList.toggle('hidden',!exampleDetailVisible);document.getElementById('toggleExampleDetail').textContent=exampleDetailVisible?'收起拆解':'逐词拆解';document.getElementById('exampleTranslation').classList.toggle('hidden',!exampleMeaningVisible);document.getElementById('exampleWordMeaning').classList.toggle('hidden',!exampleMeaningVisible);document.getElementById('toggleExampleMeaning').textContent=exampleMeaningVisible?'隐藏中文':'显示中文';}
 
 function loadMastered(){try{return JSON.parse(localStorage.getItem('kanaMastered')||'[]')}catch(e){return []}}
@@ -224,8 +222,21 @@ function renderLearn(){
 function renderGrid(){const host=document.getElementById('kanaGrid');host.innerHTML='';rows.forEach(([row,items])=>{const title=document.createElement('div');title.className='smalltitle';title.textContent=row;host.appendChild(title);const grid=document.createElement('div');grid.className='grid';items.forEach(raw=>{const item=all.find(x=>x.r===raw[2]);const i=all.indexOf(item),b=document.createElement('button');b.className='tile';b.dataset.index=i;b.innerHTML=`<span class="jp">${char(item)}</span><span class="ro">${item.r}</span>`;b.onclick=()=>{index=i;renderLearn();};grid.appendChild(b)});host.appendChild(grid)});renderLearn()}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='write'){renderWriteTarget();requestAnimationFrame(()=>setupCanvas())}});
 document.getElementById('scriptSelect').onchange=e=>{script=e.target.value;renderGrid();renderWriteTarget();newQuestion()};
-document.getElementById('prevBtn').onclick=()=>{index=(index+all.length-1)%all.length;renderLearn()};
-document.getElementById('nextBtn').onclick=()=>{index=(index+1)%all.length;renderLearn()};
+function moveKana(step){index=(index+step+all.length)%all.length;renderLearn()}
+document.getElementById('prevBtn').onclick=()=>moveKana(-1);
+document.getElementById('nextBtn').onclick=()=>moveKana(1);
+// Mobile swipe navigation: only the kana card responds; vertical scrolling and buttons remain unaffected.
+(()=>{
+ const swipeArea=document.querySelector('#learn .kana-card');
+ let startX=0,startY=0,startAt=0;
+ swipeArea.addEventListener('touchstart',e=>{if(e.touches.length!==1||e.target.closest('button,label,input,select')){startAt=0;return;}const t=e.touches[0];startX=t.clientX;startY=t.clientY;startAt=Date.now();},{passive:true});
+ swipeArea.addEventListener('touchend',e=>{if(!startAt||!document.getElementById('learn').classList.contains('active')||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-startX,dy=t.clientY-startY;
+  if(Date.now()-startAt>700||Math.abs(dx)<45||Math.abs(dx)<Math.abs(dy)*1.25)return;
+  moveKana(dx<0?1:-1);
+ },{passive:true});
+})();
+// Desktop keyboard fallback; mobile users can swipe the kana card.
+document.addEventListener('keydown',e=>{if(!document.getElementById('learn').classList.contains('active'))return;if(e.altKey||e.ctrlKey||e.metaKey)return;const t=e.target;if(t&&t.matches('input,textarea,select,[contenteditable="true"]'))return;if(e.key==='ArrowLeft'){e.preventDefault();moveKana(-1)}else if(e.key==='ArrowRight'){e.preventDefault();moveKana(1)}});
 document.getElementById('knownBtn').onclick=()=>{const k=key(current());mastered=mastered.includes(k)?mastered.filter(x=>x!==k):[...mastered,k];saveMastered();renderLearn()};
 let memoryExpanded=true;document.getElementById('memoryToggle').onclick=()=>{memoryExpanded=!memoryExpanded;document.getElementById('memoryBody').classList.toggle('hidden',!memoryExpanded);document.querySelector('.memory-tip').classList.toggle('hidden',!memoryExpanded);document.getElementById('memoryToggle').textContent=memoryExpanded?'收起提示':'显示记忆提示';document.getElementById('memoryToggle').setAttribute('aria-expanded',String(memoryExpanded));};
 document.getElementById('speakExample').onclick=()=>{const ex=exampleNotes[current().r]||exampleNotes.n;speakJapanese(ex.sentence);};
@@ -242,10 +253,8 @@ function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.le
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;last=point(e);try{canvas.setPointerCapture(e.pointerId)}catch(_){}ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(last.x+0.1,last.y+0.1);ctx.stroke()});
 canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();last=p});
 function stop(){drawing=false;last=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('pointerleave',e=>{if(e.buttons===0)stop()});
-function renderWriteTarget(){document.getElementById('writeTarget').textContent=char(current());document.getElementById('writeRomaji').textContent=current().r;const g=document.getElementById('strokeGlyph');if(g)g.textContent=char(current());clearPad();playStroke()}
+function renderWriteTarget(){document.getElementById('writeTarget').textContent=char(current());document.getElementById('writeRomaji').textContent=current().r;clearPad()}
 function clearPad(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.restore();if(guide&&canvas.getBoundingClientRect().width)drawGuide()}
-function playStroke(){const g=document.getElementById('strokeGlyph');if(!g)return;g.classList.remove('playing');void g.offsetWidth;g.classList.add('playing')}
-document.getElementById('replayStroke').onclick=playStroke;
 document.getElementById('clearPad').onclick=clearPad;
 document.getElementById('showGuide').onclick=()=>{guide=!guide;document.getElementById('showGuide').textContent=guide?'隐藏淡色字形':'显示淡色字形';clearPad()};
 document.getElementById('nextWrite').onclick=()=>{index=Math.floor(Math.random()*all.length);renderLearn();renderWriteTarget()};
