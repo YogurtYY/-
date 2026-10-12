@@ -67,7 +67,18 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <div id="quizKana">ぬ</div><div class="audio-row"><button class="speaker hidden" id="replayQuestion" type="button">🔊 重播题目</button></div><div id="quizPrompt" class="muted" style="text-align:center;margin-bottom:15px">请选择正确读音</div><div id="choices"></div>
 <div id="feedback" class="notice" style="margin-top:12px">选择一个答案开始测试。</div><div class="row" style="margin-top:13px"><button class="primary" id="nextQuestion">下一题 →</button><button class="secondary" id="restartQuiz">重新计分</button></div>
 </div>
-<div class="card"><h2>测试范围</h2><p class="muted">测试覆盖基础清音（平假名或片假名）。浊音、半浊音、拗音和小促音等进阶内容暂未纳入。</p></div>
+<div class="card">
+<h2>测试范围</h2>
+<p class="muted">按行选择测试范围，可单选一行，也可同时选择多行。范围只影响随机测试，不影响逐个学习和手写练习。</p>
+<div class="row" style="margin:10px 0">
+<button type="button" class="light" id="selectAllRows">全选</button>
+<button type="button" class="light" id="clearRows">清空</button>
+<button type="button" class="primary" id="applyRows">应用范围</button>
+</div>
+<div id="quizRowOptions" class="row" style="gap:8px 12px;align-items:flex-start"></div>
+<div class="notice" id="quizRangeStatus" style="margin-top:12px">当前范围：全部行</div>
+<p class="muted" style="margin-bottom:0">测试覆盖当前学习数据中的基础清音（平假名或片假名）。浊音、半浊音、拗音和小促音等进阶内容暂未纳入。</p>
+</div>
 </section>
 </main>
 <footer>无需联网 · 无广告 · 无账号 · 发音调用设备系统语音，不请求远程音频</footer>
@@ -260,18 +271,89 @@ document.getElementById('showGuide').onclick=()=>{guide=!guide;document.getEleme
 document.getElementById('nextWrite').onclick=()=>{index=Math.floor(Math.random()*all.length);renderLearn();renderWriteTarget()};
 window.addEventListener('resize',setupCanvas);setTimeout(setupCanvas,50);
 
-// Random multiple-choice quiz.
+// Random multiple-choice quiz with row-based range selection.
 let qNum=1,asked=0,correct=0,answered=false,qItem=null;
+const QUIZ_RANGE_KEY='kanaQuizSelectedRows';
+let selectedQuizRows=loadQuizRows();
+function loadQuizRows(){
+ try{
+  const saved=JSON.parse(localStorage.getItem(QUIZ_RANGE_KEY)||'null');
+  if(Array.isArray(saved)){
+   const valid=saved.filter(name=>rows.some(r=>r[0]===name));
+   return valid.length?valid:rows.map(r=>r[0]);
+  }
+ }catch(e){}
+ return rows.map(r=>r[0]);
+}
+function saveQuizRows(){try{localStorage.setItem(QUIZ_RANGE_KEY,JSON.stringify(selectedQuizRows))}catch(e){}}
+function quizPool(){return all.filter(item=>selectedQuizRows.includes(item.row))}
+function renderQuizRows(){
+ const host=document.getElementById('quizRowOptions');host.innerHTML='';
+ rows.forEach(([rowName])=>{
+  const label=document.createElement('label');
+  label.className='toggle';
+  label.style.cssText='background:#f5f7fb;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);';
+  const box=document.createElement('input');box.type='checkbox';box.value=rowName;box.checked=selectedQuizRows.includes(rowName);
+  box.addEventListener('change',()=>{});
+  label.appendChild(box);label.appendChild(document.createTextNode(rowName));host.appendChild(label);
+ });
+ updateQuizRangeStatus();
+}
+function updateQuizRangeStatus(){
+ const names=selectedQuizRows;
+ document.getElementById('quizRangeStatus').textContent=names.length===rows.length?'当前范围：全部行（'+quizPool().length+' 个假名）':('当前范围：'+(names.length?names.join('、'):'尚未选择')+'（'+quizPool().length+' 个假名）');
+}
 function shuffle(a){return a.sort(()=>Math.random()-.5)}
-function newQuestion(){qItem=all[Math.floor(Math.random()*all.length)];answered=false;document.getElementById('quizNum').textContent='题目 '+qNum;document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(asked?correct/asked*100:0)+'%';
- const mode=document.getElementById('quizMode').value;const listen=mode==='listenKana';document.getElementById('quizKana').textContent=listen?'🔊 听音辨假名':(mode==='toRomaji'?char(qItem):qItem.r);document.getElementById('quizPrompt').textContent=mode==='toRomaji'?'请选择正确读音':(listen?'先听发音，再选择对应假名':'请选择对应假名');document.getElementById('replayQuestion').classList.toggle('hidden',!listen);
- const opts=shuffle([qItem,...shuffle(all.filter(x=>x!==qItem)).slice(0,3)]);const host=document.getElementById('choices');host.innerHTML='';opts.forEach(it=>{const b=document.createElement('button');b.textContent=mode==='toRomaji'?it.r:char(it);b.onclick=()=>answer(b,it);host.appendChild(b)});document.getElementById('feedback').textContent='选择一个答案。';if(listen){setTimeout(()=>speakKana(qItem),120);}}
-function answer(btn,it){if(answered)return;answered=true;asked++;const ok=it===qItem;if(ok)correct++;btn.classList.add(ok?'correct':'wrong');document.querySelectorAll('#choices button').forEach(b=>{const isCorrect=b.textContent===(document.getElementById('quizMode').value==='toRomaji'?qItem.r:char(qItem));if(isCorrect)b.classList.add('correct')});document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;document.getElementById('quizBar').style.width=(correct/asked*100)+'%';document.getElementById('feedback').textContent=ok?'回答正确！ '+char(qItem)+' = '+qItem.r:'再记一下：'+char(qItem)+' = '+qItem.r+'。绿色选项是正确答案。'}
+function resetQuizScore(){qNum=1;asked=0;correct=0;}
+function newQuestion(){
+ const pool=quizPool();
+ if(!pool.length){
+  qItem=null;answered=true;
+  document.getElementById('quizNum').textContent='尚未选择范围';
+  document.getElementById('score').textContent='答对 0 / 0';
+  document.getElementById('quizBar').style.width='0%';
+  document.getElementById('quizKana').textContent='请先选择测试行';
+  document.getElementById('quizPrompt').textContent='在下方勾选一行或多行，然后点击“应用范围”。';
+  document.getElementById('choices').innerHTML='';
+  document.getElementById('feedback').textContent='选择至少一行后即可开始测试。';
+  document.getElementById('replayQuestion').classList.add('hidden');
+  return;
+ }
+ qItem=pool[Math.floor(Math.random()*pool.length)];answered=false;
+ document.getElementById('quizNum').textContent='题目 '+qNum;
+ document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;
+ document.getElementById('quizBar').style.width=(asked?correct/asked*100:0)+'%';
+ const mode=document.getElementById('quizMode').value;const listen=mode==='listenKana';
+ document.getElementById('quizKana').textContent=listen?'🔊 听音辨假名':(mode==='toRomaji'?char(qItem):qItem.r);
+ document.getElementById('quizPrompt').textContent=mode==='toRomaji'?'请选择正确读音':(listen?'先听发音，再选择对应假名':'请选择对应假名');
+ document.getElementById('replayQuestion').classList.toggle('hidden',!listen);
+ const distractors=shuffle(pool.filter(x=>x!==qItem)).slice(0,3);
+ const opts=shuffle([qItem,...distractors]);const host=document.getElementById('choices');host.innerHTML='';
+ opts.forEach(it=>{const b=document.createElement('button');b.textContent=mode==='toRomaji'?it.r:char(it);b.onclick=()=>answer(b,it);host.appendChild(b)});
+ document.getElementById('feedback').textContent='选择一个答案。';
+ if(listen){setTimeout(()=>{if(qItem)speakKana(qItem)},120);}
+}
+function answer(btn,it){
+ if(answered||!qItem)return;answered=true;asked++;const ok=it===qItem;if(ok)correct++;
+ btn.classList.add(ok?'correct':'wrong');
+ document.querySelectorAll('#choices button').forEach(b=>{const isCorrect=b.textContent===(document.getElementById('quizMode').value==='toRomaji'?qItem.r:char(qItem));if(isCorrect)b.classList.add('correct')});
+ document.getElementById('score').textContent=`答对 ${correct} / ${asked}`;
+ document.getElementById('quizBar').style.width=(correct/asked*100)+'%';
+ document.getElementById('feedback').textContent=ok?'回答正确！ '+char(qItem)+' = '+qItem.r:'再记一下：'+char(qItem)+' = '+qItem.r+'。绿色选项是正确答案。'
+}
+document.getElementById('selectAllRows').onclick=()=>{document.querySelectorAll('#quizRowOptions input[type="checkbox"]').forEach(box=>box.checked=true)};
+document.getElementById('clearRows').onclick=()=>{document.querySelectorAll('#quizRowOptions input[type="checkbox"]').forEach(box=>box.checked=false)};
+document.getElementById('applyRows').onclick=()=>{
+ const chosen=[...document.querySelectorAll('#quizRowOptions input[type="checkbox"]:checked')].map(box=>box.value);
+ if(!chosen.length){document.getElementById('quizRangeStatus').textContent='请至少选择一行，再应用范围。';return;}
+ selectedQuizRows=rows.map(r=>r[0]).filter(name=>chosen.includes(name));
+ saveQuizRows();updateQuizRangeStatus();resetQuizScore();newQuestion();
+};
 document.getElementById('nextQuestion').onclick=()=>{qNum++;newQuestion()};
-document.getElementById('restartQuiz').onclick=()=>{qNum=1;asked=0;correct=0;newQuestion()};
-document.getElementById('quizMode').onchange=()=>newQuestion();
+document.getElementById('restartQuiz').onclick=()=>{resetQuizScore();newQuestion()};
+document.getElementById('quizMode').onchange=()=>{resetQuizScore();newQuestion();};
 document.getElementById('replayQuestion').onclick=()=>speakKana(qItem);
-newQuestion();renderWriteTarget();
+renderQuizRows();newQuestion();renderWriteTarget();
 </script>
 <script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) { window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {})); }</script>
 </body>
