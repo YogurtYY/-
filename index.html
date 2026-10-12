@@ -28,6 +28,11 @@ canvas{display:block;width:100%;height:270px;border:1.5px dashed #b9c3d6;border-
 .notice{padding:10px 12px;background:#f5f7fb;border-radius:10px;font-size:13px;color:var(--muted);line-height:1.6}.hidden{display:none!important}
 footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 @media(min-width:600px){main{padding:20px}.grid{gap:9px}.tile{min-height:74px}}
+
+.memory-card{margin:0 0 16px;padding:14px;border:1px solid #dce5ff;border-radius:15px;background:linear-gradient(145deg,#f7f9ff,#fff)}
+.memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.memory-head h3{font-size:15px;margin:0}.memory-toggle{border:0;border-radius:9px;padding:8px 10px;background:#eaf0ff;color:#4568f5;font-weight:700;font-size:12px}
+.memory-body{font-size:14px;line-height:1.75;color:#26334b;white-space:pre-line}.memory-line{margin:5px 0}.memory-label{font-weight:700;color:#4568f5}.memory-tip{font-size:12px;color:#697386;margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -41,6 +46,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <div class="row" style="justify-content:space-between"><h2>学习假名</h2><select id="scriptSelect"><option value="hira">平假名</option><option value="kata">片假名</option></select></div>
 <div class="row" style="justify-content:space-between"><span class="muted" id="learnCount">第 1 个</span><span class="muted" id="learnProgress">已掌握 0 个</span></div><div class="progress"><span id="learnBar"></span></div>
 <div class="kana-card"><div class="kana-big" id="learnKana">あ</div><div class="romaji" id="learnRomaji">a</div><div class="kana-name" id="learnName">平假名 · あ行</div><div class="audio-row"><button class="speaker" id="speakCurrent" type="button">🔊 听发音</button><label class="toggle"><input id="autoSpeak" type="checkbox">切换时自动朗读</label></div><div id="audioStatus" class="audio-status">发音使用手机/浏览器的日语语音；首次使用请点“听发音”测试。</div></div>
+<div class="memory-card" id="memoryCard" aria-live="polite"><div class="memory-head"><h3>💡 记忆小窍门</h3><button type="button" class="memory-toggle" id="memoryToggle" aria-expanded="true">收起提示</button></div><div class="memory-body" id="memoryBody"></div><div class="memory-tip">记忆内容以你提供的视频文稿为准；平假名与片假名的联想分别保留。</div></div>
 <div class="row" style="justify-content:center"><button class="secondary" id="prevBtn">← 上一个</button><button class="primary" id="knownBtn">标记已掌握 ✓</button><button class="secondary" id="nextBtn">下一个 →</button></div>
 </div>
 <div class="card"><h2>假名表</h2><p class="muted">点击任意假名，可直接跳转学习。绿色表示已标记掌握。</p><div id="kanaGrid"></div></div>
@@ -84,6 +90,61 @@ function findJapaneseVoice(){if(!('speechSynthesis' in window))return null;const
 function refreshAudioStatus(){const status=document.getElementById('audioStatus');if(!('speechSynthesis' in window)){status.textContent='当前浏览器不支持系统语音合成，无法播放发音。';return;}japaneseVoice=findJapaneseVoice();status.textContent=japaneseVoice?('已找到日语语音：'+japaneseVoice.name+'（'+japaneseVoice.lang+'）。离线可用性取决于该语音是否已下载。'):'暂未检测到日语语音。可以检查 iPhone 的设置 → 辅助使用 → 朗读内容 → 声音，下载日语语音后重试；不同系统版本路径可能略有差异。';}
 function speakKana(item,force=false){if(!('speechSynthesis' in window)){refreshAudioStatus();return false;}try{window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(item.h);u.lang='ja-JP';u.rate=0.78;u.pitch=1;japaneseVoice=findJapaneseVoice();if(japaneseVoice)u.voice=japaneseVoice;u.onerror=()=>refreshAudioStatus();window.speechSynthesis.speak(u);return true;}catch(e){refreshAudioStatus();return false;}}
 if('speechSynthesis' in window){window.speechSynthesis.onvoiceschanged=refreshAudioStatus;setTimeout(refreshAudioStatus,250);}
+
+const memoryNotes={
+'a':{h:'像女孩子被棍子砸到头，发出“啊”的一声。',k:'像汉字“了”，少一个勾。'},
+'i':{h:'来自汉字“以”的左半边。',k:'像单人旁。'},
+'u':{h:'像被踹飞后屈身向前飞的人。',k:'像宝盖头。'},
+'e':{h:'来自草书“元”。',k:'像工字。'},
+'o':{h:'像数字3再加上一笔。',k:'像汉字“才”。'},
+'ka':{h:'字形比较圆润，笔画连贯。',k:'像“力”字：想象狗头卡住了，需要用力拔出来。'},
+'ki':{h:'像一把古老的钥匙，联想英文 key。',k:'像钥匙的上半部分。',tip:'手写体注意第三笔和第四笔分离。'},
+'ku':{h:'像小于号“<”；小于别人会哭，记作 ku。',k:'像数字9少一笔。'},
+'ke':{h:'像“计划”的“计”字。',k:'像竹字头的左边。',story:'计划像竹子一样节节高升，让人很开心。'},
+'ko':{h:'像竖起来的一对圆括号。',k:'像方括号的右半边。',story:'联想括号把东西括起来。'},
+'sa':{h:'比“き”少一横；手写时注意左下角分离。',k:'像草字头。',story:'草地上杀鸡。'},
+'shi':{h:'像弯曲的吸管。',k:'像三点水。',story:'用吸管吸水。'},
+'su':{h:'可以拆成“十”和“九”，也就是19。',k:'像“经”字右上角。',story:'经过19天，长出了丝瓜。'},
+'se':{h:'像汉字“世”。',k:'是“世”字的变体。',story:'世界第一。'},
+'so':{h:'一笔写完，形状像 Z 加 C。',k:'像倒过来的八字。',story:'拼成“说”字，联想撒谎。'},
+'ta':{h:'像汉字“太”。',k:'像“夕”字。',story:'夕阳太美了。'},
+'chi':{h:'像阿拉伯数字5。',k:'像“千”字。',story:'小T的工资是5千7。'},
+'tsu':{h:'像一条弯曲的线条。',k:'像“興”字的上半部分。',story:'买到吃的很高兴。'},
+'te':{h:'像缺少翅膀的形状。',k:'像“天”字。',story:'没翅膀也想飞上天，贴难了。'},
+'to':{h:'像一只拿着萝卜的手。',k:'像“卜”字。',story:'用萝卜喂羊驼。'},
+'na':{h:'像“大”字加数字2。',k:'像“十”字。',story:'那个人十岁就上大二。'},
+'ni':{h:'来自汉字“仁”。',k:'像数字2。',story:'你是个仁慈的二货。'},
+'nu':{h:'来自汉字“奴”。',k:'像“又”字。',story:'匈奴又来了。'},
+'ne':{h:'像“权”字的变化。',k:'像示字旁。',story:'把家里的权力交给内人。'},
+'no':{h:'像数字9。',k:'像一撇，也像一根棍子。',story:'数字9被棍子绊倒，喊了一声 no。'},
+'ha':{h:'右边像“仗”字的右侧。',k:'像数字8。',story:'仗势欺人的哈巴狗。'},
+'hi':{h:'像一个大坑。',k:'像“匕”首。',story:'反派站在坑边，拿着匕首坏笑。'},
+'fu':{h:'像带着一点的“小”字。',k:'像一个大号的“>”。',story:'小夫力气大。'},
+'he':{h:'平假名与片假名形状相同，像弯曲的眼睛。',k:'与平假名形状相同。',story:'眼睛笑成一条缝，嘿嘿傻笑。'},
+'ho':{h:'比“は”右侧多一横，像“天”字旁。',k:'像“木”字。',story:'木匠干了一天木工活。'},
+'ma':{h:'来自汉字“馬”。',k:'像“桶”字的右上角。',story:'马桶。'},
+'mi':{h:'像数字21。',k:'像倾斜的数字3。',story:'21岁养三只猫咪。'},
+'mu':{h:'像一个拿着莲蓬头沐浴的人。',k:'像“么/摸”的下半部分。',story:'沐浴完么么哒。'},
+'me':{h:'来自汉字“女”。',k:'像一道斜着的伤疤。',story:'妹妹脸上有一道疤。'},
+'mo':{h:'平假名和片假名都来自“毛”。',k:'平假名和片假名都来自“毛”。',story:'触摸毛绒绒的动物。'},
+'ya':{h:'来自汉字“也”。',k:'是“也”的简化写法。',story:'今天也要加油鸭。'},
+'yu':{h:'像汉字“中”。',k:'像“丑”字的外壳。',story:'心中有你，去表白却被嫌丑。'},
+'yo':{h:'像汉字“上”。',k:'像“当”字的下半部分。',story:'出门不要上当哟。'},
+'ra':{h:'像数字5。',k:'像“文”字。',story:'报纸只要五文啦。'},
+'ri':{h:'平假名和片假名都联想立刀旁。',k:'平假名和片假名都联想立刀旁。',tip:'平假名左侧带弧度和勾；手写时注意笔画分离。'},
+'ru':{h:'像“歹徒”的“歹”字。',k:'像“儿”字。',story:'歹徒撸走了儿子。'},
+'re':{h:'来自“礼”字左侧，并由整体字形演变而来。',k:'像“礼”字的右半部分。',story:'逢年过节送礼好累。'},
+'ro':{h:'像数字3。',k:'像“口”字。',story:'三张口对着你念叨，真啰嗦。'},
+'wa':{h:'像“书”字少了右上角一点。',k:'像宝盖头，但少了顶上一点。',story:'看书看秃了，哇的一声哭。'},
+'wo':{h:'像人的脚踩在字母 c 上。',k:'像断掉的肋骨。',tip:'视频文稿特别提醒：助词“を”。'},
+'n':{h:'视频文稿没有提供这组的记忆点；补充联想：把“ん”看作一条弯弯的尾巴。',k:'视频文稿没有提供这组的记忆点；补充联想：把“ン”看作两笔向外展开。',tip:'此条为补充内容，不属于视频原文。'}
+};
+function renderMemory(){const it=current();const note=memoryNotes[it.r]||{};const body=document.getElementById('memoryBody');body.innerHTML='';const lines=[];
+ const add=(label,text)=>{if(!text)return;const d=document.createElement('div');d.className='memory-line';const b=document.createElement('span');b.className='memory-label';b.textContent=label+'：';d.appendChild(b);d.appendChild(document.createTextNode(text));body.appendChild(d);};
+ add('平假名 '+it.h,note.h);add('片假名 '+it.k,note.k);add('记忆故事',note.story);add('书写提醒',note.tip);
+ if(!note.h&&!note.k&&!note.story&&!note.tip){add('记忆点','暂无单独整理的联想提示。');}
+}
+
 function loadMastered(){try{return JSON.parse(localStorage.getItem('kanaMastered')||'[]')}catch(e){return []}}
 function saveMastered(){try{localStorage.setItem('kanaMastered',JSON.stringify(mastered))}catch(e){}}
 function key(item){return script+':'+item.r}
@@ -92,6 +153,7 @@ function char(item){return script==='hira'?item.h:item.k}
 function renderLearn(){
  const it=current();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
  document.getElementById('learnName').textContent=(script==='hira'?'平假名':'片假名')+' · '+it.row;
+  renderMemory();
  if(document.getElementById('autoSpeak')?.checked) speakKana(it);
  document.getElementById('learnCount').textContent=`第 ${index+1} / ${all.length} 个`;
  const count=all.filter(x=>mastered.includes(script+':'+x.r)).length;
@@ -106,8 +168,9 @@ document.getElementById('scriptSelect').onchange=e=>{script=e.target.value;rende
 document.getElementById('prevBtn').onclick=()=>{index=(index+all.length-1)%all.length;renderLearn()};
 document.getElementById('nextBtn').onclick=()=>{index=(index+1)%all.length;renderLearn()};
 document.getElementById('knownBtn').onclick=()=>{const k=key(current());mastered=mastered.includes(k)?mastered.filter(x=>x!==k):[...mastered,k];saveMastered();renderLearn()};
+let memoryExpanded=true;document.getElementById('memoryToggle').onclick=()=>{memoryExpanded=!memoryExpanded;document.getElementById('memoryBody').classList.toggle('hidden',!memoryExpanded);document.querySelector('.memory-tip').classList.toggle('hidden',!memoryExpanded);document.getElementById('memoryToggle').textContent=memoryExpanded?'收起提示':'显示记忆提示';document.getElementById('memoryToggle').setAttribute('aria-expanded',String(memoryExpanded));};
 document.getElementById('speakCurrent').onclick=()=>{if(speakKana(current()))document.getElementById('audioStatus').textContent='正在播放日语发音；如果没有声音，请检查手机静音、媒体音量及日语语音设置。'};
-renderGrid();
+renderGrid();renderLearn();
 
 // Handwriting canvas: supports touch and mouse, with optional faint guide.
 const canvas=document.getElementById('pad'),ctx=canvas.getContext('2d');let drawing=false,guide=false,last=null;
