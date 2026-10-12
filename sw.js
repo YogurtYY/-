@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kana-study-v7';
+const CACHE_NAME = 'kana-study-v10';
 const CORE_FILES = ['./', './index.html', './manifest.webmanifest'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_FILES)));
