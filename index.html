@@ -23,6 +23,7 @@ select{border:1px solid var(--line);border-radius:10px;padding:10px;background:w
 .progress{height:7px;border-radius:99px;background:#edf0f6;overflow:hidden;margin:12px 0}.progress span{display:block;height:100%;background:var(--accent);width:0}
 .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.tile{border:1px solid var(--line);border-radius:11px;background:white;min-height:64px;padding:5px 2px;text-align:center;color:var(--ink)}.tile .jp{font-size:27px;display:block}.tile .ro{font-size:11px;color:var(--muted)}.tile.done{background:#e9f8f1;border-color:#b7e6d0}.tile.selected{outline:2px solid var(--accent)}
 .smalltitle{font-size:13px;color:var(--muted);margin:15px 0 8px}
+.stroke-demo{margin:0 0 12px;padding:14px;border:1px solid #dce5ff;border-radius:15px;background:#f8faff;text-align:center}.stroke-stage{height:190px;display:flex;align-items:center;justify-content:center;overflow:hidden}.stroke-glyph{font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:clamp(100px,32vw,150px);line-height:1;color:var(--accent);animation:glyphReveal 1.6s ease-in-out both}.stroke-glyph.playing{animation:glyphReveal 1.6s ease-in-out both}@keyframes glyphReveal{0%{opacity:.05;transform:scale(.88);filter:blur(5px);clip-path:inset(100% 0 0 0)}45%{opacity:.75;filter:blur(1px);clip-path:inset(45% 0 0 0)}100%{opacity:1;transform:scale(1);filter:none;clip-path:inset(0 0 0 0)}}
 canvas{display:block;width:100%;height:270px;border:1.5px dashed #b9c3d6;border-radius:14px;background-color:white;touch-action:none}
 #quizKana{font-size:90px;text-align:center;line-height:1.25;margin:8px 0}#choices{display:grid;grid-template-columns:1fr 1fr;gap:9px}#choices button{padding:15px 8px;font-size:17px;border:1px solid var(--line);background:#fff;border-radius:12px;color:var(--ink)}#choices button.correct{background:#e3f8ed;border-color:#72c99d}#choices button.wrong{background:#fff0f1;border-color:#e99aa3}
 .notice{padding:10px 12px;background:#f5f7fb;border-radius:10px;font-size:13px;color:var(--muted);line-height:1.6}.hidden{display:none!important}
@@ -56,6 +57,7 @@ footer{text-align:center;padding:12px 20px 28px;color:#8a93a4;font-size:12px}
 <section class="panel" id="write">
 <div class="card"><h2>手写练习</h2><p class="muted">根据罗马音，在下方空白区域用手指书写假名。页面不会自动判定笔迹，请对照目标字形检查。</p>
 <div class="kana-card" style="padding:8px"><div class="kana-big" id="writeTarget">あ</div><div class="romaji" id="writeRomaji">a</div><div class="kana-name">请尝试写出这个假名</div></div>
+<div class="stroke-demo"><div class="row" style="justify-content:space-between"><strong>自动字形演示</strong><button class="secondary" id="replayStroke" type="button">▶ 重新播放</button></div><div class="stroke-stage"><div class="stroke-glyph" id="strokeGlyph" aria-label="假名字形动画">あ</div></div><div class="muted" id="strokeHint">自动播放当前假名的字形显现动画。</div></div>
 <canvas id="pad" aria-label="手写练习区域"></canvas>
 <div class="row" style="margin-top:12px"><button class="secondary" id="clearPad">清空重写</button><button class="secondary" id="showGuide">显示淡色字形</button><button class="primary" id="nextWrite">换一个练习</button></div>
 <div class="notice" style="margin-top:12px">提示：先观察笔画形状，再写 2–3 次。此页面不加载外部字体、图片或脚本；个别字形显示效果取决于手机自带日文字体。</div>
@@ -207,7 +209,7 @@ function key(item){return script+':'+item.r}
 function current(){return all[index]}
 function char(item){return script==='hira'?item.h:item.k}
 function renderLearn(){
- const it=current();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
+ const it=current();if(document.getElementById('write').classList.contains('active'))renderWriteTarget();document.getElementById('learnKana').textContent=char(it);document.getElementById('learnRomaji').textContent=it.r;
  document.getElementById('learnName').textContent=(script==='hira'?'平假名':'片假名')+' · '+it.row;
   renderMemory();
  renderExample();
@@ -240,8 +242,10 @@ function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.le
 canvas.addEventListener('pointerdown',e=>{e.preventDefault();drawing=true;last=point(e);try{canvas.setPointerCapture(e.pointerId)}catch(_){}ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(last.x+0.1,last.y+0.1);ctx.stroke()});
 canvas.addEventListener('pointermove',e=>{if(!drawing)return;e.preventDefault();const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();last=p});
 function stop(){drawing=false;last=null}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);canvas.addEventListener('pointerleave',e=>{if(e.buttons===0)stop()});
-function renderWriteTarget(){document.getElementById('writeTarget').textContent=char(current());document.getElementById('writeRomaji').textContent=current().r;clearPad()}
+function renderWriteTarget(){document.getElementById('writeTarget').textContent=char(current());document.getElementById('writeRomaji').textContent=current().r;const g=document.getElementById('strokeGlyph');if(g)g.textContent=char(current());clearPad();playStroke()}
 function clearPad(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.restore();if(guide&&canvas.getBoundingClientRect().width)drawGuide()}
+function playStroke(){const g=document.getElementById('strokeGlyph');if(!g)return;g.classList.remove('playing');void g.offsetWidth;g.classList.add('playing')}
+document.getElementById('replayStroke').onclick=playStroke;
 document.getElementById('clearPad').onclick=clearPad;
 document.getElementById('showGuide').onclick=()=>{guide=!guide;document.getElementById('showGuide').textContent=guide?'隐藏淡色字形':'显示淡色字形';clearPad()};
 document.getElementById('nextWrite').onclick=()=>{index=Math.floor(Math.random()*all.length);renderLearn();renderWriteTarget()};
